@@ -1,0 +1,172 @@
+# Moltbot GPU-Accelerated Local AI
+# Optimized for NVIDIA GPUs with CUDA support
+#
+# Usage:
+#   docker compose -f docker/docker-compose.gpu.yml up -d
+#
+# Requirements:
+#   - NVIDIA GPU with CUDA support
+#   - NVIDIA Container Toolkit installed
+#   - At least 8GB VRAM (12GB+ recommended)
+
+services:
+  # ===========================================================================
+  # vLLM - High-throughput GPU inference
+  # Best for: Maximum throughput, production workloads
+  # ===========================================================================
+  vllm:
+    image: vllm/vllm-openai:latest
+    container_name: moltbot-vllm
+    ports:
+      - "8000:8000"
+    volumes:
+      - vllm-cache:/root/.cache/huggingface
+    environment:
+      - HUGGING_FACE_HUB_TOKEN=${HF_TOKEN:-}
+    command: >
+      --model mistralai/Mistral-7B-Instruct-v0.3
+      --host 0.0.0.0
+      --port 8000
+      --max-model-len 32768
+      --gpu-memory-utilization 0.9
+      --enable-prefix-caching
+      --enable-chunked-prefill
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
+
+  # ===========================================================================
+  # vLlama - Ollama-compatible interface with vLLM backend
+  # Best for: Ollama workflow compatibility + vLLM performance
+  # ===========================================================================
+  vllama:
+    image: tomhimanen/vllama:latest
+    container_name: moltbot-vllama
+    ports:
+      - "11435:11435"
+    volumes:
+      - vllama-data:/root/.ollama
+      - vllama-cache:/root/.cache
+    environment:
+      - VLLAMA_PORT=11435
+      - VLLAMA_HOST=0.0.0.0
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    restart: unless-stopped
+    profiles:
+      - vllama
+
+  # ===========================================================================
+  # GPU-Accelerated Embeddings
+  # ===========================================================================
+  embeddings-gpu:
+    image: ghcr.io/huggingface/text-embeddings-inference:1.5
+    container_name: moltbot-embeddings-gpu
+    ports:
+      - "8081:80"
+    volumes:
+      - embeddings-data:/data
+    environment:
+      - MODEL_ID=BAAI/bge-large-en-v1.5
+    command: ["--model-id", "BAAI/bge-large-en-v1.5", "--port", "80"]
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ===========================================================================
+  # GPU-Accelerated Reranker
+  # ===========================================================================
+  reranker-gpu:
+    image: ghcr.io/huggingface/text-embeddings-inference:1.5
+    container_name: moltbot-reranker-gpu
+    ports:
+      - "8082:80"
+    volumes:
+      - reranker-data:/data
+    environment:
+      - MODEL_ID=BAAI/bge-reranker-large
+    command: ["--model-id", "BAAI/bge-reranker-large", "--port", "80"]
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    profiles:
+      - reranker
+
+  # ===========================================================================
+  # Vector Databases (same as local-ai)
+  # ===========================================================================
+  chroma:
+    image: chromadb/chroma:latest
+    container_name: moltbot-chroma
+    ports:
+      - "8000:8000"
+    volumes:
+      - chroma-data:/chroma/chroma
+    environment:
+      - IS_PERSISTENT=TRUE
+      - PERSIST_DIRECTORY=/chroma/chroma
+      - ANONYMIZED_TELEMETRY=FALSE
+    restart: unless-stopped
+    profiles:
+      - vectordb
+
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: moltbot-qdrant
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - qdrant-data:/qdrant/storage
+    restart: unless-stopped
+    profiles:
+      - vectordb
+
+volumes:
+  vllm-cache:
+  vllama-data:
+  vllama-cache:
+  embeddings-data:
+  reranker-data:
+  chroma-data:
+  qdrant-data:
+
+networks:
+  default:
+    name: moltbot-gpu-ai

@@ -1,0 +1,41 @@
+{
+  "id": "tool-validator",
+  "name": "Tool Validator",
+  "description": "Tool calling validation and repair for local AI models",
+  "version": "1.0.0",
+  "uiHints": {
+    "enabled": {
+      "label": "Enable Validation",
+      "help": "Enable tool call validation and repair"
+    },
+    "repairStrategy": {
+      "label": "Repair Strategy",
+      "help": "How to handle invalid tool calls: coerce (try to fix types), default (use defaults), prompt (ask user), block (reject)"
+    },
+    "blockOnValidationFailure": {
+      "label": "Block on Failure",
+      "help": "Block tool calls that fail validation (even if unrepairable)"
+    },
+    "blockDangerousCalls": {
+      "label": "Block Dangerous Calls",
+      "help": "Block potentially dangerous tool calls (shell injection, path traversal, etc.)"
+    },
+    "allowToolNameFuzzyMatch": {
+      "label": "Fuzzy Match Tool Names",
+      "help": "Allow fuzzy matching of tool names for typos"
+    },
+    "maxFuzzyMatchDistance": {
+      "label": "Max Fuzzy Distance",
+      "help": "Maximum edit distance for fuzzy tool name matching",
+      "advanced": true
+    },
+    "logValidationErrors": {
+      "label": "Log Errors",
+      "help": "Log validation errors and repairs"
+    },
+    "strictMode": {
+      "label": "Strict Mode",
+      "help": "Block all tool calls with any validation error"
+    }
+  }
+}

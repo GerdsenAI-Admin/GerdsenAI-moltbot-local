@@ -1,0 +1,19 @@
+{
+  "name": "@moltbot/vectordb-chroma",
+  "version": "1.0.0",
+  "description": "Chroma vector database integration for Moltbot memory",
+  "type": "module",
+  "main": "index.ts",
+  "moltbot": {
+    "extensions": ["./index.ts"]
+  },
+  "dependencies": {
+    "chromadb": "^1.9.2"
+  },
+  "devDependencies": {
+    "moltbot": "workspace:*"
+  },
+  "peerDependencies": {
+    "moltbot": ">=2025.1.0"
+  }
+}

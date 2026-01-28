@@ -1,0 +1,48 @@
+{
+  "id": "vectordb-chroma",
+  "name": "Chroma Vector DB",
+  "description": "Chroma vector database integration for memory storage",
+  "version": "1.0.0",
+  "kind": "memory",
+  "uiHints": {
+    "enabled": {
+      "label": "Enable Chroma",
+      "help": "Enable Chroma vector database integration"
+    },
+    "host": {
+      "label": "Chroma Host",
+      "help": "Chroma server URL",
+      "placeholder": "http://localhost:8000"
+    },
+    "apiKey": {
+      "label": "API Key",
+      "help": "Chroma Cloud API key (optional for local)",
+      "sensitive": true
+    },
+    "tenant": {
+      "label": "Tenant",
+      "help": "Chroma Cloud tenant ID",
+      "advanced": true
+    },
+    "database": {
+      "label": "Database",
+      "help": "Chroma Cloud database name",
+      "advanced": true
+    },
+    "collectionName": {
+      "label": "Collection Name",
+      "help": "Name of the collection to use",
+      "placeholder": "moltbot_memory"
+    },
+    "embeddingFunction.provider": {
+      "label": "Embedding Provider",
+      "help": "Provider for generating embeddings",
+      "advanced": true
+    },
+    "embeddingFunction.model": {
+      "label": "Embedding Model",
+      "help": "Model for generating embeddings",
+      "advanced": true
+    }
+  }
+}
