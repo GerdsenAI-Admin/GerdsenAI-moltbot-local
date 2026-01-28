@@ -675,7 +675,7 @@ const localAiDiscoveryPlugin = {
     // Gateway startup hook
     // ========================================================================
 
-    api.on("gateway_start", async () => {
+    api.on("gateway_start", async (_event, _ctx) => {
       api.logger.info("local-ai-discovery: gateway started, running discovery");
       await runDiscovery();
     });

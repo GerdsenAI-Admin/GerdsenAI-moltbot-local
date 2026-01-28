@@ -420,7 +420,7 @@ const toolValidatorPlugin = {
 
     api.on(
       "before_tool_call",
-      async (event) => {
+      async (event, _ctx) => {
         stats.validated++;
 
         const toolName = event.toolName;
@@ -490,7 +490,7 @@ const toolValidatorPlugin = {
     );
 
     // Track available tools when they're called
-    api.on("after_tool_call", (event) => {
+    api.on("after_tool_call", (event, _ctx) => {
       availableTools.add(event.toolName);
     });
 

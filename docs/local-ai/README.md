@@ -189,13 +189,51 @@ Validates and repairs tool calls from local models:
 
 ## Docker Compose Files
 
-| File | Use Case |
-|------|----------|
-| `docker-compose.quickstart.yml` | Minimal setup (Ollama + Chroma) |
-| `docker-compose.local-ai.yml` | Full local AI stack |
-| `docker-compose.gpu.yml` | GPU-accelerated with vLLM |
+| File | Use Case | Platform |
+|------|----------|----------|
+| `docker-compose.quickstart.yml` | Minimal setup (Ollama + Chroma) | All |
+| `docker-compose.local-ai.yml` | Full local AI stack | Linux/macOS |
+| `docker-compose.gpu.yml` | GPU-accelerated with vLLM | Linux (NVIDIA) |
+| `docker-compose.windows.yml` | Windows-optimized setup | Windows |
 
-### GPU Setup
+### Windows Setup
+
+Windows users should use the Windows-specific compose file:
+
+```powershell
+# Start with Docker Desktop (WSL2 backend required)
+docker compose -f docker/docker-compose.windows.yml up -d
+
+# Pull a model
+docker exec -it moltbot-ollama ollama pull mistral:7b-instruct
+```
+
+**Windows Requirements:**
+- Docker Desktop with WSL2 backend
+- For GPU: NVIDIA drivers on Windows + NVIDIA Container Toolkit in WSL2
+
+**Windows Limitations:**
+- vLlama is not available (requires NVIDIA Linux containers)
+- LM Studio must be installed natively (not in Docker)
+- GPU passthrough requires WSL2 + NVIDIA Container Toolkit
+
+**Recommended Windows Setup:**
+1. Use `docker-compose.windows.yml` for Ollama + Chroma
+2. Install LM Studio natively for additional models
+3. Configure moltbot to use both:
+
+```json
+{
+  "models": {
+    "providers": {
+      "ollama": { "baseUrl": "http://localhost:11434/v1" },
+      "lmstudio": { "baseUrl": "http://localhost:1234/v1" }
+    }
+  }
+}
+```
+
+### GPU Setup (Linux)
 
 ```bash
 # Full GPU stack with vLLM

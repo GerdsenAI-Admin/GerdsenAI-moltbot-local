@@ -626,7 +626,7 @@ const rerankerPlugin = {
     // ========================================================================
 
     // Hook into memory search results to rerank them
-    api.on("after_tool_call", async (event) => {
+    api.on("after_tool_call", async (event, _ctx) => {
       if (event.toolName !== "memory_search" && event.toolName !== "memory_recall") {
         return;
       }
