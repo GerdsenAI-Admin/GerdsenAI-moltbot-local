@@ -194,12 +194,14 @@ Validates and repairs tool calls from local models:
 | `docker-compose.quickstart.yml` | Minimal setup (Ollama + Chroma) | All |
 | `docker-compose.local-ai.yml` | Full local AI stack | Linux/macOS |
 | `docker-compose.gpu.yml` | GPU-accelerated with vLLM | Linux (NVIDIA) |
-| `docker-compose.windows.yml` | Windows-optimized setup | Windows |
+| `docker-compose.windows.yml` | Windows CPU-only setup | Windows |
+| `docker-compose.windows-gpu.yml` | Windows GPU-accelerated | Windows (WSL2 + NVIDIA) |
 
 ### Windows Setup
 
-Windows users should use the Windows-specific compose file:
+Windows users can choose between CPU-only or GPU-accelerated setups:
 
+**CPU-only Setup:**
 ```powershell
 # Start with Docker Desktop (WSL2 backend required)
 docker compose -f docker/docker-compose.windows.yml up -d
@@ -208,17 +210,30 @@ docker compose -f docker/docker-compose.windows.yml up -d
 docker exec -it moltbot-ollama ollama pull mistral:7b-instruct
 ```
 
-**Windows Requirements:**
+**GPU-accelerated Setup (WSL2 + NVIDIA):**
+```powershell
+# Requires NVIDIA Container Toolkit in WSL2 (see comments in compose file)
+docker compose -f docker/docker-compose.windows-gpu.yml up -d
+
+# Pull a model
+docker exec -it moltbot-ollama ollama pull mistral:7b-instruct
+
+# Verify GPU access
+docker exec -it moltbot-ollama nvidia-smi
+```
+
+**Windows GPU Requirements:**
+- Windows 11 or Windows 10 21H2+ with WSL2
 - Docker Desktop with WSL2 backend
-- For GPU: NVIDIA drivers on Windows + NVIDIA Container Toolkit in WSL2
+- NVIDIA GPU drivers on Windows (version 470.76+)
+- NVIDIA Container Toolkit installed in WSL2
 
 **Windows Limitations:**
 - vLlama is not available (requires NVIDIA Linux containers)
 - LM Studio must be installed natively (not in Docker)
-- GPU passthrough requires WSL2 + NVIDIA Container Toolkit
 
 **Recommended Windows Setup:**
-1. Use `docker-compose.windows.yml` for Ollama + Chroma
+1. Use `docker-compose.windows-gpu.yml` for GPU acceleration, or `docker-compose.windows.yml` for CPU-only
 2. Install LM Studio natively for additional models
 3. Configure moltbot to use both:
 
@@ -282,6 +297,90 @@ LM Studio with MLX backend is recommended:
 | Qwen 2.5 32B | 128K | Best quality |
 | Mistral 7B | 32K | Fast, good quality |
 | Phi-3 | 128K | Small but capable |
+
+## Combined Deployments
+
+### Running Gateway with Local AI
+
+To run the Moltbot gateway container alongside local AI services, you need to ensure both services can communicate. There are two approaches:
+
+**Option 1: Shared Network (Recommended)**
+
+Add the gateway to the local-ai network:
+
+```bash
+# Start local AI services
+docker compose -f docker/docker-compose.local-ai.yml up -d
+
+# Start gateway with network connection
+docker compose -f docker-compose.yml up -d
+docker network connect moltbot-local-ai moltbot-gateway
+```
+
+**Option 2: Multi-file Compose**
+
+Use multiple compose files together:
+
+```bash
+# Combined startup
+docker compose \
+  -f docker-compose.yml \
+  -f docker/docker-compose.local-ai.yml \
+  up -d
+```
+
+Then configure your `moltbot.json` to use the container hostnames:
+
+```json
+{
+  "models": {
+    "providers": {
+      "ollama": {
+        "baseUrl": "http://moltbot-ollama:11434/v1"
+      }
+    }
+  },
+  "plugins": {
+    "vectordb-chroma": {
+      "host": "http://moltbot-chroma:8000"
+    }
+  }
+}
+```
+
+### Running Local AI with Native Gateway
+
+If running the gateway natively (not in Docker), use `localhost` URLs:
+
+```json
+{
+  "models": {
+    "providers": {
+      "ollama": { "baseUrl": "http://localhost:11434/v1" },
+      "lmstudio": { "baseUrl": "http://localhost:1234/v1" }
+    }
+  },
+  "plugins": {
+    "vectordb-chroma": { "host": "http://localhost:8000" },
+    "vectordb-qdrant": { "url": "http://localhost:6333" }
+  }
+}
+```
+
+### Full Stack Example
+
+Complete setup with GPU inference, vector database, and reranking:
+
+```bash
+# Linux with NVIDIA GPU
+docker compose -f docker/docker-compose.gpu.yml --profile vectordb --profile reranker up -d
+
+# Windows with WSL2 + NVIDIA
+docker compose -f docker/docker-compose.windows-gpu.yml up -d
+
+# macOS (CPU-only, use LM Studio natively for GPU)
+docker compose -f docker/docker-compose.quickstart.yml up -d
+```
 
 ## Troubleshooting
 

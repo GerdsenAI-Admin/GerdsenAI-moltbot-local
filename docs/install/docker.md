@@ -210,6 +210,10 @@ pnpm test:docker:qr
 - Gateway bind defaults to `lan` for container use.
 - The gateway container is the source of truth for sessions (`~/.clawdbot/agents/<agentId>/sessions/`).
 
+### Local AI Integration
+
+To run the containerized gateway alongside local AI services (Ollama, Chroma, Qdrant), see [Local AI Integration](/local-ai/README) for compose file options and network configuration.
+
 ## Agent Sandbox (host gateway + Docker tools)
 
 Deep dive: [Sandboxing](/gateway/sandboxing)
