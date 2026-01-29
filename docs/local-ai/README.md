@@ -194,12 +194,14 @@ Validates and repairs tool calls from local models:
 | `docker-compose.quickstart.yml` | Minimal setup (Ollama + Chroma) | All |
 | `docker-compose.local-ai.yml` | Full local AI stack | Linux/macOS |
 | `docker-compose.gpu.yml` | GPU-accelerated with vLLM | Linux (NVIDIA) |
-| `docker-compose.windows.yml` | Windows-optimized setup | Windows |
+| `docker-compose.windows.yml` | Windows CPU-only setup | Windows |
+| `docker-compose.windows-gpu.yml` | Windows GPU-accelerated | Windows (WSL2 + NVIDIA) |
 
 ### Windows Setup
 
-Windows users should use the Windows-specific compose file:
+Windows users can choose between CPU-only or GPU-accelerated setups:
 
+**CPU-only Setup:**
 ```powershell
 # Start with Docker Desktop (WSL2 backend required)
 docker compose -f docker/docker-compose.windows.yml up -d
@@ -208,17 +210,30 @@ docker compose -f docker/docker-compose.windows.yml up -d
 docker exec -it moltbot-ollama ollama pull mistral:7b-instruct
 ```
 
-**Windows Requirements:**
+**GPU-accelerated Setup (WSL2 + NVIDIA):**
+```powershell
+# Requires NVIDIA Container Toolkit in WSL2 (see comments in compose file)
+docker compose -f docker/docker-compose.windows-gpu.yml up -d
+
+# Pull a model
+docker exec -it moltbot-ollama ollama pull mistral:7b-instruct
+
+# Verify GPU access
+docker exec -it moltbot-ollama nvidia-smi
+```
+
+**Windows GPU Requirements:**
+- Windows 11 or Windows 10 21H2+ with WSL2
 - Docker Desktop with WSL2 backend
-- For GPU: NVIDIA drivers on Windows + NVIDIA Container Toolkit in WSL2
+- NVIDIA GPU drivers on Windows (version 470.76+)
+- NVIDIA Container Toolkit installed in WSL2
 
 **Windows Limitations:**
 - vLlama is not available (requires NVIDIA Linux containers)
 - LM Studio must be installed natively (not in Docker)
-- GPU passthrough requires WSL2 + NVIDIA Container Toolkit
 
 **Recommended Windows Setup:**
-1. Use `docker-compose.windows.yml` for Ollama + Chroma
+1. Use `docker-compose.windows-gpu.yml` for GPU acceleration, or `docker-compose.windows.yml` for CPU-only
 2. Install LM Studio natively for additional models
 3. Configure moltbot to use both:
 
