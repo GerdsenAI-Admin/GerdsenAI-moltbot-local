@@ -1,0 +1,143 @@
+# Moltbot Local AI for Windows with GPU Support
+# Requires: Docker Desktop with WSL2 backend + NVIDIA Container Toolkit
+#
+# Prerequisites:
+#   1. Windows 11 or Windows 10 21H2+ with WSL2
+#   2. NVIDIA GPU drivers installed on Windows (version 470.76+)
+#   3. Docker Desktop with WSL2 backend enabled
+#   4. NVIDIA Container Toolkit installed in WSL2:
+#      wsl -d Ubuntu
+#      curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | sudo gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg
+#      curl -s -L https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list | \
+#        sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' | \
+#        sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
+#      sudo apt-get update && sudo apt-get install -y nvidia-container-toolkit
+#      sudo nvidia-ctk runtime configure --runtime=docker
+#      # Restart Docker Desktop after this
+#
+# Usage:
+#   docker compose -f docker/docker-compose.windows-gpu.yml up -d
+#
+# Verify GPU access:
+#   docker exec -it moltbot-ollama nvidia-smi
+
+services:
+  # ===========================================================================
+  # Ollama with GPU - Primary inference backend
+  # ===========================================================================
+  ollama:
+    image: ollama/ollama:latest
+    container_name: moltbot-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-data:/root/.ollama
+    environment:
+      - OLLAMA_HOST=0.0.0.0
+      - OLLAMA_NUM_PARALLEL=4
+      - OLLAMA_MAX_LOADED_MODELS=2
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "wget --spider -q http://localhost:11434/api/version || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # ===========================================================================
+  # Chroma Vector DB
+  # ===========================================================================
+  chroma:
+    image: chromadb/chroma:latest
+    container_name: moltbot-chroma
+    ports:
+      - "8000:8000"
+    volumes:
+      - chroma-data:/chroma/chroma
+    environment:
+      - IS_PERSISTENT=TRUE
+      - PERSIST_DIRECTORY=/chroma/chroma
+      - ANONYMIZED_TELEMETRY=FALSE
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "wget --spider -q http://localhost:8000/api/v1/heartbeat || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ===========================================================================
+  # Qdrant Vector DB (alternative)
+  # ===========================================================================
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: moltbot-qdrant
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - qdrant-data:/qdrant/storage
+    restart: unless-stopped
+    profiles:
+      - qdrant
+
+  # ===========================================================================
+  # GPU-accelerated Embeddings (requires CUDA)
+  # ===========================================================================
+  embeddings:
+    image: ghcr.io/huggingface/text-embeddings-inference:1.5
+    container_name: moltbot-embeddings
+    ports:
+      - "8081:80"
+    volumes:
+      - embeddings-data:/data
+    command: ["--model-id", "BAAI/bge-small-en-v1.5", "--port", "80"]
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    restart: unless-stopped
+    profiles:
+      - embeddings
+
+  # ===========================================================================
+  # GPU-accelerated Reranker (requires CUDA)
+  # ===========================================================================
+  reranker:
+    image: ghcr.io/huggingface/text-embeddings-inference:1.5
+    container_name: moltbot-reranker
+    ports:
+      - "8082:80"
+    volumes:
+      - reranker-data:/data
+    command: ["--model-id", "BAAI/bge-reranker-base", "--port", "80"]
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    restart: unless-stopped
+    profiles:
+      - reranker
+
+volumes:
+  ollama-data:
+  chroma-data:
+  qdrant-data:
+  embeddings-data:
+  reranker-data:
+
+networks:
+  default:
+    name: moltbot-windows-gpu

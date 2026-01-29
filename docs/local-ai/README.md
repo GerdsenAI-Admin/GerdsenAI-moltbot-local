@@ -283,6 +283,90 @@ LM Studio with MLX backend is recommended:
 | Mistral 7B | 32K | Fast, good quality |
 | Phi-3 | 128K | Small but capable |
 
+## Combined Deployments
+
+### Running Gateway with Local AI
+
+To run the Moltbot gateway container alongside local AI services, you need to ensure both services can communicate. There are two approaches:
+
+**Option 1: Shared Network (Recommended)**
+
+Add the gateway to the local-ai network:
+
+```bash
+# Start local AI services
+docker compose -f docker/docker-compose.local-ai.yml up -d
+
+# Start gateway with network connection
+docker compose -f docker-compose.yml up -d
+docker network connect moltbot-local-ai moltbot-gateway
+```
+
+**Option 2: Multi-file Compose**
+
+Use multiple compose files together:
+
+```bash
+# Combined startup
+docker compose \
+  -f docker-compose.yml \
+  -f docker/docker-compose.local-ai.yml \
+  up -d
+```
+
+Then configure your `moltbot.json` to use the container hostnames:
+
+```json
+{
+  "models": {
+    "providers": {
+      "ollama": {
+        "baseUrl": "http://moltbot-ollama:11434/v1"
+      }
+    }
+  },
+  "plugins": {
+    "vectordb-chroma": {
+      "host": "http://moltbot-chroma:8000"
+    }
+  }
+}
+```
+
+### Running Local AI with Native Gateway
+
+If running the gateway natively (not in Docker), use `localhost` URLs:
+
+```json
+{
+  "models": {
+    "providers": {
+      "ollama": { "baseUrl": "http://localhost:11434/v1" },
+      "lmstudio": { "baseUrl": "http://localhost:1234/v1" }
+    }
+  },
+  "plugins": {
+    "vectordb-chroma": { "host": "http://localhost:8000" },
+    "vectordb-qdrant": { "url": "http://localhost:6333" }
+  }
+}
+```
+
+### Full Stack Example
+
+Complete setup with GPU inference, vector database, and reranking:
+
+```bash
+# Linux with NVIDIA GPU
+docker compose -f docker/docker-compose.gpu.yml --profile vectordb --profile reranker up -d
+
+# Windows with WSL2 + NVIDIA
+docker compose -f docker/docker-compose.windows-gpu.yml up -d
+
+# macOS (CPU-only, use LM Studio natively for GPU)
+docker compose -f docker/docker-compose.quickstart.yml up -d
+```
+
 ## Troubleshooting
 
 ### "No models found"
