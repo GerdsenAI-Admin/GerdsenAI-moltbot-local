@@ -1,0 +1,170 @@
+# Moltbot Local AI Infrastructure
+# This docker-compose file sets up all components for local AI inference
+#
+# Usage:
+#   docker compose -f docker/docker-compose.local-ai.yml up -d
+#
+# Components:
+#   - vLlama: Ollama model management + vLLM inference (port 11435)
+#   - Chroma: Vector database (port 8000)
+#   - Qdrant: Alternative vector database (port 6333)
+#   - Reranker: Local BGE reranker model (port 8080)
+
+services:
+  # ===========================================================================
+  # vLlama - High-performance local inference
+  # Combines Ollama's model management with vLLM's GPU-accelerated inference
+  # ===========================================================================
+  vllama:
+    image: tomhimanen/vllama:latest
+    container_name: moltbot-vllama
+    ports:
+      - "11435:11435"
+    volumes:
+      - vllama-data:/root/.ollama
+      - vllama-cache:/root/.cache
+    environment:
+      - VLLAMA_PORT=11435
+      - VLLAMA_HOST=0.0.0.0
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11435/v1/models"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ===========================================================================
+  # Ollama - Alternative local inference (if vLlama isn't available)
+  # ===========================================================================
+  ollama:
+    image: ollama/ollama:latest
+    container_name: moltbot-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-data:/root/.ollama
+    environment:
+      - OLLAMA_HOST=0.0.0.0
+      - OLLAMA_NUM_PARALLEL=4
+      - OLLAMA_MAX_LOADED_MODELS=2
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/api/version"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    profiles:
+      - ollama
+
+  # ===========================================================================
+  # Chroma - Vector database for RAG
+  # ===========================================================================
+  chroma:
+    image: chromadb/chroma:latest
+    container_name: moltbot-chroma
+    ports:
+      - "8000:8000"
+    volumes:
+      - chroma-data:/chroma/chroma
+    environment:
+      - IS_PERSISTENT=TRUE
+      - PERSIST_DIRECTORY=/chroma/chroma
+      - ANONYMIZED_TELEMETRY=FALSE
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/heartbeat"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ===========================================================================
+  # Qdrant - Alternative vector database
+  # ===========================================================================
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: moltbot-qdrant
+    ports:
+      - "6333:6333"
+      - "6334:6334"  # gRPC
+    volumes:
+      - qdrant-data:/qdrant/storage
+    environment:
+      - QDRANT__SERVICE__HTTP_PORT=6333
+      - QDRANT__SERVICE__GRPC_PORT=6334
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:6333/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ===========================================================================
+  # Local Reranker - BGE cross-encoder for improved search
+  # ===========================================================================
+  reranker:
+    image: ghcr.io/huggingface/text-embeddings-inference:cpu-1.5
+    container_name: moltbot-reranker
+    ports:
+      - "8080:80"
+    volumes:
+      - reranker-data:/data
+    environment:
+      - MODEL_ID=BAAI/bge-reranker-base
+    command: ["--model-id", "BAAI/bge-reranker-base", "--port", "80"]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    profiles:
+      - reranker
+
+  # ===========================================================================
+  # Local Embeddings - Text embeddings for vector search
+  # ===========================================================================
+  embeddings:
+    image: ghcr.io/huggingface/text-embeddings-inference:cpu-1.5
+    container_name: moltbot-embeddings
+    ports:
+      - "8081:80"
+    volumes:
+      - embeddings-data:/data
+    environment:
+      - MODEL_ID=BAAI/bge-small-en-v1.5
+    command: ["--model-id", "BAAI/bge-small-en-v1.5", "--port", "80"]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    profiles:
+      - embeddings
+
+volumes:
+  vllama-data:
+  vllama-cache:
+  ollama-data:
+  chroma-data:
+  qdrant-data:
+  reranker-data:
+  embeddings-data:
+
+networks:
+  default:
+    name: moltbot-local-ai

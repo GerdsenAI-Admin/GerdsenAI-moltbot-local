@@ -1,0 +1,37 @@
+{
+  "id": "document-ingest",
+  "name": "Document Ingest",
+  "description": "Document ingestion pipeline for PDF, DOCX, TXT, MD, and HTML formats",
+  "version": "1.0.0",
+  "uiHints": {
+    "enabled": {
+      "label": "Enable Document Ingestion",
+      "help": "Enable document ingestion capabilities"
+    },
+    "outputDir": {
+      "label": "Output Directory",
+      "help": "Directory to save extracted markdown files",
+      "placeholder": "./documents"
+    },
+    "addToMemory": {
+      "label": "Add to Memory",
+      "help": "Automatically add ingested documents to memory for RAG"
+    },
+    "includeMetadata": {
+      "label": "Include Metadata",
+      "help": "Include document metadata (title, author, etc.) in output"
+    },
+    "cleanContent": {
+      "label": "Clean Content",
+      "help": "Remove excessive whitespace and normalize text"
+    },
+    "supportedFormats": {
+      "label": "Supported Formats",
+      "help": "Document formats to support (pdf, docx, txt, md, html)"
+    },
+    "maxFileSizeMb": {
+      "label": "Max File Size (MB)",
+      "help": "Maximum file size to process"
+    }
+  }
+}

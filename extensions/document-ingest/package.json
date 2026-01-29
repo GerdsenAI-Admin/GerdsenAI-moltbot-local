@@ -1,0 +1,21 @@
+{
+  "name": "@moltbot/document-ingest",
+  "version": "1.0.0",
+  "description": "Document ingestion pipeline for PDF, DOCX, and other formats",
+  "type": "module",
+  "main": "index.ts",
+  "moltbot": {
+    "extensions": ["./index.ts"]
+  },
+  "dependencies": {
+    "pdf-parse": "^1.1.1",
+    "mammoth": "^1.8.0"
+  },
+  "devDependencies": {
+    "moltbot": "workspace:*",
+    "@types/pdf-parse": "^1.1.4"
+  },
+  "peerDependencies": {
+    "moltbot": ">=2025.1.0"
+  }
+}

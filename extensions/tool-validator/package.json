@@ -1,0 +1,17 @@
+{
+  "name": "@moltbot/tool-validator",
+  "version": "1.0.0",
+  "description": "Tool calling validation and repair for local AI models",
+  "type": "module",
+  "main": "index.ts",
+  "moltbot": {
+    "extensions": ["./index.ts"]
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "moltbot": "workspace:*"
+  },
+  "peerDependencies": {
+    "moltbot": ">=2025.1.0"
+  }
+}

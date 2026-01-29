@@ -1,0 +1,19 @@
+{
+  "name": "@moltbot/vectordb-qdrant",
+  "version": "1.0.0",
+  "description": "Qdrant vector database integration for Moltbot memory",
+  "type": "module",
+  "main": "index.ts",
+  "moltbot": {
+    "extensions": ["./index.ts"]
+  },
+  "dependencies": {
+    "@qdrant/js-client-rest": "^1.12.0"
+  },
+  "devDependencies": {
+    "moltbot": "workspace:*"
+  },
+  "peerDependencies": {
+    "moltbot": ">=2025.1.0"
+  }
+}

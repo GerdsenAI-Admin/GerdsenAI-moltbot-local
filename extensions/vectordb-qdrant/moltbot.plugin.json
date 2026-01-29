@@ -1,0 +1,43 @@
+{
+  "id": "vectordb-qdrant",
+  "name": "Qdrant Vector DB",
+  "description": "Qdrant vector database integration for memory storage",
+  "version": "1.0.0",
+  "kind": "memory",
+  "uiHints": {
+    "enabled": {
+      "label": "Enable Qdrant",
+      "help": "Enable Qdrant vector database integration"
+    },
+    "url": {
+      "label": "Qdrant URL",
+      "help": "Qdrant server URL",
+      "placeholder": "http://localhost:6333"
+    },
+    "apiKey": {
+      "label": "API Key",
+      "help": "Qdrant Cloud API key (optional for local)",
+      "sensitive": true
+    },
+    "collectionName": {
+      "label": "Collection Name",
+      "help": "Name of the collection to use",
+      "placeholder": "moltbot_memory"
+    },
+    "vectorSize": {
+      "label": "Vector Size",
+      "help": "Dimension of embedding vectors",
+      "advanced": true
+    },
+    "distance": {
+      "label": "Distance Metric",
+      "help": "Similarity metric: Cosine, Euclid, or Dot",
+      "advanced": true
+    },
+    "onDiskPayload": {
+      "label": "On-Disk Payload",
+      "help": "Store payload on disk instead of RAM",
+      "advanced": true
+    }
+  }
+}

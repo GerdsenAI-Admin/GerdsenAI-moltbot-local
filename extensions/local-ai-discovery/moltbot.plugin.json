@@ -1,0 +1,55 @@
+{
+  "id": "local-ai-discovery",
+  "name": "Local AI Discovery",
+  "description": "Auto-discover models from vLlama, LM Studio, and Ollama backends",
+  "version": "1.0.0",
+  "providers": ["vllama", "lmstudio", "ollama"],
+  "uiHints": {
+    "enabled": {
+      "label": "Enable Discovery",
+      "help": "Enable automatic model discovery from local AI backends"
+    },
+    "backends.vllama.enabled": {
+      "label": "vLlama",
+      "help": "Enable vLlama backend discovery (port 11435)"
+    },
+    "backends.vllama.baseUrl": {
+      "label": "vLlama URL",
+      "help": "Custom vLlama server URL",
+      "placeholder": "http://127.0.0.1:11435/v1"
+    },
+    "backends.lmstudio.enabled": {
+      "label": "LM Studio",
+      "help": "Enable LM Studio backend discovery (port 1234)"
+    },
+    "backends.lmstudio.baseUrl": {
+      "label": "LM Studio URL",
+      "help": "Custom LM Studio server URL",
+      "placeholder": "http://127.0.0.1:1234/v1"
+    },
+    "backends.ollama.enabled": {
+      "label": "Ollama",
+      "help": "Enable Ollama backend discovery (port 11434)"
+    },
+    "backends.ollama.baseUrl": {
+      "label": "Ollama URL",
+      "help": "Custom Ollama server URL",
+      "placeholder": "http://127.0.0.1:11434/v1"
+    },
+    "discoveryIntervalMs": {
+      "label": "Discovery Interval",
+      "help": "How often to refresh model discovery (milliseconds)",
+      "advanced": true
+    },
+    "timeoutMs": {
+      "label": "Timeout",
+      "help": "Timeout for backend connections (milliseconds)",
+      "advanced": true
+    },
+    "autoRegister": {
+      "label": "Auto Register",
+      "help": "Automatically register discovered backends as providers",
+      "advanced": true
+    }
+  }
+}

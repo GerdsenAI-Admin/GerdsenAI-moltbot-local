@@ -1,0 +1,17 @@
+{
+  "name": "@moltbot/local-ai-discovery",
+  "version": "1.0.0",
+  "description": "Auto-discover models from vLlama, LM Studio, and other local AI backends",
+  "type": "module",
+  "main": "index.ts",
+  "moltbot": {
+    "extensions": ["./index.ts"]
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "moltbot": "workspace:*"
+  },
+  "peerDependencies": {
+    "moltbot": ">=2025.1.0"
+  }
+}

@@ -1,0 +1,58 @@
+# Moltbot Quick Start - Minimal Local AI Setup
+# Just Ollama and Chroma for basic local AI functionality
+#
+# Usage:
+#   docker compose -f docker/docker-compose.quickstart.yml up -d
+#   ollama pull mistral:7b-instruct
+#
+# Then configure moltbot.json:
+#   {
+#     "models": {
+#       "providers": {
+#         "ollama": {
+#           "baseUrl": "http://localhost:11434/v1",
+#           "apiKey": "ollama"
+#         }
+#       }
+#     },
+#     "plugins": {
+#       "enabled": ["local-ai-discovery", "vectordb-chroma"]
+#     }
+#   }
+
+services:
+  ollama:
+    image: ollama/ollama:latest
+    container_name: moltbot-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-data:/root/.ollama
+    environment:
+      - OLLAMA_HOST=0.0.0.0
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/api/version"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  chroma:
+    image: chromadb/chroma:latest
+    container_name: moltbot-chroma
+    ports:
+      - "8000:8000"
+    volumes:
+      - chroma-data:/chroma/chroma
+    environment:
+      - IS_PERSISTENT=TRUE
+      - ANONYMIZED_TELEMETRY=FALSE
+    restart: unless-stopped
+
+volumes:
+  ollama-data:
+  chroma-data:
+
+networks:
+  default:
+    name: moltbot-quickstart

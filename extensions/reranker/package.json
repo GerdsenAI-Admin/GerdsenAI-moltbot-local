@@ -1,0 +1,17 @@
+{
+  "name": "@moltbot/reranker",
+  "version": "1.0.0",
+  "description": "Reranking support for RAG using Cohere or local cross-encoders",
+  "type": "module",
+  "main": "index.ts",
+  "moltbot": {
+    "extensions": ["./index.ts"]
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "moltbot": "workspace:*"
+  },
+  "peerDependencies": {
+    "moltbot": ">=2025.1.0"
+  }
+}

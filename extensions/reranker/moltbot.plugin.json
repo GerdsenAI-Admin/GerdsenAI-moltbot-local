@@ -1,0 +1,64 @@
+{
+  "id": "reranker",
+  "name": "Reranker",
+  "description": "Reranking for improved RAG retrieval quality using Cohere, Jina, or local cross-encoders",
+  "version": "1.0.0",
+  "uiHints": {
+    "enabled": {
+      "label": "Enable Reranking",
+      "help": "Enable reranking of search results"
+    },
+    "provider": {
+      "label": "Provider",
+      "help": "Reranking provider to use"
+    },
+    "topK": {
+      "label": "Top K",
+      "help": "Number of top results to return after reranking"
+    },
+    "minScore": {
+      "label": "Minimum Score",
+      "help": "Minimum relevance score threshold"
+    },
+    "cohere.apiKey": {
+      "label": "Cohere API Key",
+      "help": "API key for Cohere reranking",
+      "sensitive": true
+    },
+    "cohere.model": {
+      "label": "Cohere Model",
+      "help": "Cohere reranking model to use",
+      "placeholder": "rerank-english-v3.0"
+    },
+    "jina.apiKey": {
+      "label": "Jina API Key",
+      "help": "API key for Jina reranking",
+      "sensitive": true
+    },
+    "jina.model": {
+      "label": "Jina Model",
+      "help": "Jina reranking model to use",
+      "placeholder": "jina-reranker-v2-base-multilingual"
+    },
+    "local.baseUrl": {
+      "label": "Local Reranker URL",
+      "help": "URL of local reranking server",
+      "placeholder": "http://127.0.0.1:8080"
+    },
+    "local.model": {
+      "label": "Local Model",
+      "help": "Local cross-encoder model name",
+      "placeholder": "BAAI/bge-reranker-base"
+    },
+    "huggingface.apiKey": {
+      "label": "HuggingFace Token",
+      "help": "HuggingFace API token",
+      "sensitive": true
+    },
+    "huggingface.model": {
+      "label": "HuggingFace Model",
+      "help": "HuggingFace cross-encoder model",
+      "placeholder": "BAAI/bge-reranker-base"
+    }
+  }
+}
